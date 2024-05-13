@@ -10,7 +10,6 @@ services:
     build:
       context: .
       dockerfile: infrastructure/docker/Dockerfile
-    entrypoint: npm run dev | pino-pretty
     restart: unless-stopped
     env_file: .env
     ports:
