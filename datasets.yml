@@ -14,6 +14,17 @@ datasets:
     metadata: 
       modes:
         - flight
+  ummadumm-data:
+    # The backend URL the data is downloaded from
+    source: https://amarillo.otp.opendatahub.testingmachine.eu/gtfs/amarillo.altoadige.gtfs.zip
+    # time to live of GTFS file cache.
+    cache_ttl: 300
+    description: Planned carpool trips of the operator Ummadumm
+    origin: ummadum.com
+    license: CC0
+    metadata:
+      modes:
+        - carpool
   sta-time-tables:
     source: ftp://anonymous:guest@ftp.sta.bz.it/gtfs/google_transit_shp.zip
     cache_ttl: 7200
