@@ -78,6 +78,8 @@ components:
           $ref: "#/components/schemas/dataset"
         sta-time-tables:
           $ref: "#/components/schemas/dataset"
+        ummadumm-data:
+          $ref: "#/components/schemas/dataset"
     dataset:
       type: object
       description: Metadata of a GTFS dataset
