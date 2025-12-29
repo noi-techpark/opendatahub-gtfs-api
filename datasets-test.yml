@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+datasets:
+  skyalps-flight-data:
+    # The backend URL the data is downloaded from
+    source: https://flighdata-skyalps-gtfs-test.s3.eu-west-1.amazonaws.com/ssim-gtfs.zip
+    # time to live of GTFS file cache. 
+    cache_ttl: 300
+    description: Planned flights of the operator SkyAlps
+    origin: skyalps.it
+    license: CC0
+    metadata: 
+      modes:
+        - flight
+  sta-time-tables:
+    source: ftp://anonymous:guest@ftp.sta.bz.it/gtfs/google_transit_shp.zip
+    cache_ttl: 7200
+    description: Public transportation data provided by STA
+    origin: sta.bz.it
+    license: CC0
+    metadata: 
+      modes:
+        - bus
+        - train
+        - cable car
