@@ -5,7 +5,7 @@
 datasets:
   skyalps-flight-data:
     # The backend URL the data is downloaded from
-    source: https://flighdata-skyalps-gtfs-prod.s3.eu-west-1.amazonaws.com/GTFS.zip
+    source: https://flighdata-skyalps-gtfs-prod.s3.eu-west-1.amazonaws.com/ssim-gtfs.zip
     # time to live of GTFS file cache. 
     cache_ttl: 300
     description: Planned flights of the operator SkyAlps
