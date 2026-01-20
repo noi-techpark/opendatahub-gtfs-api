@@ -32,7 +32,7 @@ jobs:
           X_LOG_LEVEL: info
           
       - name: Use different dataset.yml for testing environment
-        run: cp datasets-test.yml datasets.yml
+        run: rm datasets.yml && mv datasets-test.yml datasets.yml
 
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2
