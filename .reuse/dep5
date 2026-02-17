@@ -3,6 +3,6 @@ Upstream-Name: com.opendatahub.api.gtfs
 Upstream-Contact: NOI Techpark <digital@noi.bz.it>
 Source: https://github.com/noi-techpark/com.opendatahub.api.gtfs
 
-Files: .github/* infrastructure/* .vscode/* .gitignore .pre-commit-config.yaml .env.example *.json
+Files: .github/** infrastructure/* .vscode/* .gitignore .pre-commit-config.yaml .env.example *.json
 Copyright: (c) NOI Techpark <digital@noi.bz.it>
 License: CC0-1.0
