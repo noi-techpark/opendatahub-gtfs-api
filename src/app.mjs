@@ -19,25 +19,50 @@ const app = express()
 const router = Router()
 const port = 3000
 const cache = new NodeCache()
-const pinoHttp = pino({ level: process.env.LOG_LEVEL })
+const pinoHttp = pino({ level: process.env.LOG_LEVEL || 'info' })
 
 app.use(pinoHttp)
 app.use(cors())
 app.set('trust proxy')
 
+const FEED_TYPES = ['trip-updates', 'vehicle-positions', 'service-alerts']
+const feedTypeToConfigKey = (feedType) => feedType.replace(/-/g, '_')
+const configKeyToFeedType = (key) => key.replace(/_/g, '-')
+
+const FORMAT_CONTENT_TYPES = {
+  json: 'application/json',
+  pb: 'application/x-protobuf'
+}
+
 function assembleMetadata (id, cfg) {
-  return {
+  const meta = {
     description: cfg.description,
     endpoint: `${process.env.API_BASE_URL}/v1/dataset/${id}/raw`,
     origin: cfg.origin,
     license: cfg.license,
     metadata: cfg.metadata
   }
+  if (cfg.realtime) {
+    meta.realtime = Object.fromEntries(
+      Object.entries(cfg.realtime.feeds)
+        .map(([type, _]) => [type, `${process.env.API_BASE_URL}/v1/realtime/${id}/${configKeyToFeedType(type)}`])
+    )
+  }
+  return meta
 }
 
 function error (res, status, msg) {
   res.status(status)
   res.send({ error: msg })
+}
+
+function negotiateFormat (req) {
+  if (req.query.format === 'pb') return 'pb'
+  if (req.query.format === 'json') return 'json'
+  // req.accepts() returns the best match; only pick pb if it wins over json
+  const best = req.accepts(['application/json', 'application/x-protobuf'])
+  if (best === 'application/x-protobuf') return 'pb'
+  return 'json'
 }
 
 router.get('/dataset', (req, res) => {
@@ -62,6 +87,12 @@ const protocolHandlers = {
   ftp: (uri) => getFile(uri)
 }
 
+function fetchFromSource (uri) {
+  const proto = uri.match(/^(\w+):.*/)[1].toLowerCase()
+  const handler = protocolHandlers[proto]
+  return handler(uri)
+}
+
 router.get('/dataset/:dataset/raw', async (req, res) => {
   const datasetId = req.params.dataset
   const datasetConfig = datastoreConfigs[datasetId]
@@ -71,10 +102,7 @@ router.get('/dataset/:dataset/raw', async (req, res) => {
 
   let rawGTFS = cache.get(datasetId)
   if (!rawGTFS) {
-    const uri = datasetConfig.source
-    const proto = uri.match(/^(\w+):.*/)[1].toLowerCase() // extract the protocol part of URL
-    const handler = protocolHandlers[proto]
-    rawGTFS = await handler(uri)
+    rawGTFS = await fetchFromSource(datasetConfig.source)
     cache.set(datasetId, rawGTFS, datasetConfig.cache_ttl)
   }
 
@@ -84,6 +112,76 @@ router.get('/dataset/:dataset/raw', async (req, res) => {
     'Content-length': rawGTFS.length
   })
   res.end(rawGTFS)
+})
+
+// Realtime endpoints
+
+router.get('/realtime', (req, res) => {
+  const rtDatasets = Object.entries(datastoreConfigs)
+    .filter(([_, cfg]) => cfg.realtime)
+    .map(([id, cfg]) => [id, {
+      dataset_id: id,
+      static_dataset: `${process.env.API_BASE_URL}/v1/dataset/${id}`,
+      feeds: Object.fromEntries(
+        Object.entries(cfg.realtime.feeds)
+          .map(([type, _]) => [type, `${process.env.API_BASE_URL}/v1/realtime/${id}/${configKeyToFeedType(type)}`])
+      )
+    }])
+  res.json(Object.fromEntries(rtDatasets))
+})
+
+router.get('/realtime/:dataset', (req, res) => {
+  const datasetId = req.params.dataset
+  const config = datastoreConfigs[datasetId]
+  if (!config || !config.realtime) {
+    return error(res, 404, `Realtime feeds for dataset ${datasetId} not found!`)
+  }
+  res.json({
+    dataset_id: datasetId,
+    static_dataset: `${process.env.API_BASE_URL}/v1/dataset/${datasetId}`,
+    static_gtfs: `${process.env.API_BASE_URL}/v1/dataset/${datasetId}/raw`,
+    feeds: Object.fromEntries(
+      Object.entries(config.realtime.feeds)
+        .map(([type, _]) => [type, `${process.env.API_BASE_URL}/v1/realtime/${datasetId}/${configKeyToFeedType(type)}`])
+    )
+  })
+})
+
+router.get('/realtime/:dataset/:feedType', async (req, res) => {
+  const datasetId = req.params.dataset
+  const feedType = req.params.feedType
+
+  if (!FEED_TYPES.includes(feedType)) {
+    return error(res, 404, `Unknown feed type ${feedType}!`)
+  }
+
+  const config = datastoreConfigs[datasetId]
+  if (!config || !config.realtime) {
+    return error(res, 404, `Realtime feeds for dataset ${datasetId} not found!`)
+  }
+
+  const configKey = feedTypeToConfigKey(feedType)
+  const feedConfig = config.realtime.feeds[configKey]
+  if (!feedConfig) {
+    return error(res, 404, `Feed ${feedType} not available for dataset ${datasetId}!`)
+  }
+
+  const format = negotiateFormat(req)
+  const sourceUrl = feedConfig.sources[format]
+  if (!sourceUrl) {
+    return error(res, 406, `Format ${format} not available for ${feedType} of dataset ${datasetId}!`)
+  }
+
+  const cacheKey = `rt:${datasetId}:${configKey}:${format}`
+  const cacheTtl = feedConfig.cache_ttl || config.realtime.cache_ttl
+  let data = cache.get(cacheKey)
+  if (!data) {
+    data = await fetchFromSource(sourceUrl)
+    cache.set(cacheKey, data, cacheTtl)
+  }
+
+  res.set('Content-Type', FORMAT_CONTENT_TYPES[format])
+  res.send(data)
 })
 
 // Openapi stuff

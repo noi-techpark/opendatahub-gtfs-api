@@ -12,3 +12,16 @@ GET {{host}}/v1/dataset/skyalps-flight-data
 GET {{host}}/v1/dataset/sta-time-tables/raw
 ### Get from ftp source
 GET {{host}}/v1/dataset/skyalps-flight-data/raw
+
+### List all datasets with realtime feeds
+GET {{host}}/v1/realtime
+### Get realtime feed metadata for a dataset
+GET {{host}}/v1/realtime/sta-time-tables
+### Get trip updates feed (JSON)
+GET {{host}}/v1/realtime/sta-time-tables/trip-updates
+### Get vehicle positions feed (JSON)
+GET {{host}}/v1/realtime/sta-time-tables/vehicle-positions
+### Get service alerts feed (JSON)
+GET {{host}}/v1/realtime/sta-time-tables/service-alerts
+### Request protobuf format (returns 406 until pb sources are configured)
+GET {{host}}/v1/realtime/sta-time-tables/trip-updates?format=pb

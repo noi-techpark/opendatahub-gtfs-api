@@ -6,7 +6,7 @@ openapi: 3.0.3
 info:
   title: Open Data Hub GTFS API
   description: >
-    API to retrieve GTFS files and related metadata.
+    API to retrieve GTFS files, related metadata, and GTFS-RT realtime feeds.
   termsOfService: https://docs.opendatahub.com/en/latest/licenses.html#apis-terms-of-service
   contact:
     name: Open Data Hub
@@ -59,6 +59,68 @@ paths:
                 format: binary
         400:
           description: Invalid dataset ID
+  /realtime:
+    get:
+      summary: List all datasets with realtime feeds
+      responses:
+        200:
+          description: Map of datasets that have realtime feeds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/realtime-dataset-map"
+  /realtime/{datasetId}:
+    get:
+      summary: Get realtime feed metadata for a dataset
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+      responses:
+        200:
+          description: Realtime feed metadata with available feed URLs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/realtime-dataset"
+        404:
+          description: Dataset not found or has no realtime feeds
+  /realtime/{datasetId}/{feedType}:
+    get:
+      summary: Get a realtime feed
+      description: >
+        Returns the GTFS-RT feed data. Format is negotiated via Accept header
+        or ?format= query parameter (json or pb). Defaults to JSON.
+      parameters:
+        - $ref: "#/components/parameters/datasetId"
+        - name: feedType
+          in: path
+          required: true
+          description: Type of GTFS-RT feed
+          schema:
+            type: string
+            enum: [trip-updates, vehicle-positions, service-alerts]
+        - name: format
+          in: query
+          required: false
+          description: Response format override (json or pb)
+          schema:
+            type: string
+            enum: [json, pb]
+      responses:
+        200:
+          description: GTFS-RT feed data
+          content:
+            application/json:
+              schema:
+                type: object
+                description: GTFS-RT feed in JSON format
+            application/x-protobuf:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: Dataset or feed type not found
+        406:
+          description: Requested format not available for this feed
 
 components:
   parameters:
@@ -87,6 +149,10 @@ components:
         description:
           type: string
           description: A short description of the dataset
+        endpoint:
+          type: string
+          format: uri
+          description: URL to download the raw GTFS file
         origin:
           type: string
           description: The provider of the dataset
@@ -97,3 +163,51 @@ components:
           type: object
           description: A free form JSON object that may contain additional metadata
           additionalProperties: true
+        realtime:
+          $ref: "#/components/schemas/realtime-links"
+    realtime-dataset-map:
+      type: object
+      description: Map of datasets that have realtime feeds
+      additionalProperties:
+        $ref: "#/components/schemas/realtime-dataset"
+    realtime-dataset:
+      type: object
+      description: Realtime feed metadata for a dataset
+      properties:
+        dataset_id:
+          type: string
+          description: The associated dataset ID
+        static_dataset:
+          type: string
+          format: uri
+          description: URL to the static GTFS dataset metadata
+        static_gtfs:
+          type: string
+          format: uri
+          description: URL to download the static GTFS file
+        feeds:
+          type: object
+          description: Available realtime feed URLs
+          properties:
+            trip_updates:
+              type: string
+              format: uri
+            vehicle_positions:
+              type: string
+              format: uri
+            service_alerts:
+              type: string
+              format: uri
+    realtime-links:
+      type: object
+      description: Links to available realtime feeds, present only when the dataset has RT feeds
+      properties:
+        trip_updates:
+          type: string
+          format: uri
+        vehicle_positions:
+          type: string
+          format: uri
+        service_alerts:
+          type: string
+          format: uri
