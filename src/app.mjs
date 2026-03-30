@@ -130,23 +130,6 @@ router.get('/realtime', (req, res) => {
   res.json(Object.fromEntries(rtDatasets))
 })
 
-router.get('/realtime/:dataset', (req, res) => {
-  const datasetId = req.params.dataset
-  const config = datastoreConfigs[datasetId]
-  if (!config || !config.realtime) {
-    return error(res, 404, `Realtime feeds for dataset ${datasetId} not found!`)
-  }
-  res.json({
-    dataset_id: datasetId,
-    static_dataset: `${process.env.API_BASE_URL}/v1/dataset/${datasetId}`,
-    static_gtfs: `${process.env.API_BASE_URL}/v1/dataset/${datasetId}/raw`,
-    feeds: Object.fromEntries(
-      Object.entries(config.realtime.feeds)
-        .map(([type, _]) => [type, `${process.env.API_BASE_URL}/v1/realtime/${datasetId}/${configKeyToFeedType(type)}`])
-    )
-  })
-})
-
 router.get('/realtime/:dataset/:feedType', async (req, res) => {
   const datasetId = req.params.dataset
   const feedType = req.params.feedType

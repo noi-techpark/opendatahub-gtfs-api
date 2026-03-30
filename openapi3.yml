@@ -69,20 +69,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/realtime-dataset-map"
-  /realtime/{datasetId}:
-    get:
-      summary: Get realtime feed metadata for a dataset
-      parameters:
-        - $ref: "#/components/parameters/datasetId"
-      responses:
-        200:
-          description: Realtime feed metadata with available feed URLs
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/realtime-dataset"
-        404:
-          description: Dataset not found or has no realtime feeds
   /realtime/{datasetId}/{feedType}:
     get:
       summary: Get a realtime feed

@@ -31,9 +31,12 @@ datasets:
         trip_updates:
           sources:
             json: https://files.dev.testingmachine.eu/gtfs-rt-json/feeds/sta/trip-updates.json
-        # vehicle_positions:
-        #   sources:
-        #     json: https://example.com/sta/vehicle-positions.json
-        # service_alerts:
-        #   sources:
-        #     json: https://example.com/sta/service-alerts.json
+            protobuf: https://files.dev.testingmachine.eu/gtfs-rt-json/feeds/sta/trip-updates.pb
+        vehicle_positions:
+          sources:
+            json: https://files.dev.testingmachine.eu/gtfs-rt-json/feeds/sta/vehicle-positions.json
+            protobuf: https://files.dev.testingmachine.eu/gtfs-rt-json/feeds/sta/vehicle-positions.pb
+        service_alerts:
+          sources:
+            json: https://files.dev.testingmachine.eu/gtfs-rt-json/feeds/sta/service-alerts.json
+            protobuf: https://files.dev.testingmachine.eu/gtfs-rt-json/feeds/sta/service-alerts.pb
