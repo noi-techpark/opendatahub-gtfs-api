@@ -23,5 +23,6 @@ GET {{host}}/v1/realtime/sta-time-tables/trip-updates
 GET {{host}}/v1/realtime/sta-time-tables/vehicle-positions
 ### Get service alerts feed (JSON)
 GET {{host}}/v1/realtime/sta-time-tables/service-alerts
-### Request protobuf format (returns 406 until pb sources are configured)
-GET {{host}}/v1/realtime/sta-time-tables/trip-updates?format=pb
+### Request protobuf format via Accept header (returns 406 until pb sources are configured)
+GET {{host}}/v1/realtime/sta-time-tables/trip-updates
+Accept: application/x-protobuf

@@ -57,9 +57,6 @@ function error (res, status, msg) {
 }
 
 function negotiateFormat (req) {
-  if (req.query.format === 'pb') return 'pb'
-  if (req.query.format === 'json') return 'json'
-  // req.accepts() returns the best match; only pick pb if it wins over json
   const best = req.accepts(['application/json', 'application/x-protobuf'])
   if (best === 'application/x-protobuf') return 'pb'
   return 'json'
@@ -159,7 +156,12 @@ router.get('/realtime/:dataset/:feedType', async (req, res) => {
   const cacheTtl = feedConfig.cache_ttl || config.realtime.cache_ttl
   let data = cache.get(cacheKey)
   if (!data) {
-    data = await fetchFromSource(sourceUrl)
+    try {
+      data = await fetchFromSource(sourceUrl)
+    } catch (e) {
+      req.log.error(e, `Failed to fetch ${feedType} for dataset ${datasetId}`)
+      return error(res, 502, `Failed to fetch ${feedType} feed!`)
+    }
     cache.set(cacheKey, data, cacheTtl)
   }
 
