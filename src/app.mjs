@@ -154,7 +154,7 @@ router.get('/realtime/:dataset/:feedType', async (req, res) => {
 
   const cacheKey = `rt:${datasetId}:${configKey}:${format}`
   const cacheTtl = feedConfig.cache_ttl || config.realtime.cache_ttl
-  let data = cache.get(cacheKey)
+  let data = cacheTtl ? cache.get(cacheKey) : undefined
   if (!data) {
     try {
       data = await fetchFromSource(sourceUrl)
@@ -162,7 +162,7 @@ router.get('/realtime/:dataset/:feedType', async (req, res) => {
       req.log.error(e, `Failed to fetch ${feedType} for dataset ${datasetId}`)
       return error(res, 502, `Failed to fetch ${feedType} feed!`)
     }
-    cache.set(cacheKey, data, cacheTtl)
+    if (cacheTtl) cache.set(cacheKey, data, cacheTtl)
   }
 
   res.set('Content-Type', FORMAT_CONTENT_TYPES[format])
