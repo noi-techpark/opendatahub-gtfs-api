@@ -11,7 +11,7 @@ env:
 
 jobs:
   deploy-test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout source code
@@ -50,7 +50,7 @@ jobs:
           project-name: ${{ env.PROJECT_NAME }}
 
   deploy-prod:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/prod'
     steps:
       - name: Checkout source code
