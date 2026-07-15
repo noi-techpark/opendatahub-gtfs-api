@@ -19,7 +19,12 @@ const app = express()
 const router = Router()
 const port = 3000
 const cache = new NodeCache()
-const pinoHttp = pino({ level: process.env.LOG_LEVEL || 'info' })
+const pinoHttp = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  formatters: {
+    level: (label) => ({ level: label.toUpperCase() })
+  }
+})
 
 app.use(pinoHttp)
 app.use(cors())
