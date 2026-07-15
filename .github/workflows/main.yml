@@ -57,7 +57,7 @@ jobs:
         uses: noi-techpark/github-actions/checkout@v2
 
       - name: REUSE Compliance Check
-        uses: fsfe/reuse-action@v1
+        uses: fsfe/reuse-action@v5
 
       - name: Create .env file
         uses: noi-techpark/github-actions/env-file@v2
